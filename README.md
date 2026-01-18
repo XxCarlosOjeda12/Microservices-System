@@ -1,32 +1,79 @@
-# CRUD Microservices System
+<h1 align="center">Microservices System</h1>
 
-![Node.js](https://img.shields.io/badge/Node.js-18-339933?style=flat&logo=node.js&logoColor=white)
-![React](https://img.shields.io/badge/React-19-61DAFB?style=flat&logo=react&logoColor=black)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-4169E1?style=flat&logo=postgresql&logoColor=white)
-![Docker](https://img.shields.io/badge/Docker-20.10+-2496ED?style=flat&logo=docker&logoColor=white)
-![Nginx](https://img.shields.io/badge/Nginx-Alpine-009639?style=flat&logo=nginx&logoColor=white)
-![Express](https://img.shields.io/badge/Express-4.x-000000?style=flat&logo=express&logoColor=white)
-![License](https://img.shields.io/badge/License-MIT-yellow.svg)
+<p align="center">
+  <i>Startup and emerging technologies management system built with a decoupled microservices architecture.</i>
+</p>
+
+<p align="center">
+  <img alt="Node.js" src="https://img.shields.io/badge/Node.js-18-339933?style=flat&logo=node.js&logoColor=white" />
+  <img alt="React" src="https://img.shields.io/badge/React-19-61DAFB?style=flat&logo=react&logoColor=black" />
+  <img alt="PostgreSQL" src="https://img.shields.io/badge/PostgreSQL-15-4169E1?style=flat&logo=postgresql&logoColor=white" />
+  <img alt="Docker" src="https://img.shields.io/badge/Docker-20.10+-2496ED?style=flat&logo=docker&logoColor=white" />
+  <img alt="Nginx" src="https://img.shields.io/badge/Nginx-Alpine-009639?style=flat&logo=nginx&logoColor=white" />
+  <img alt="Express" src="https://img.shields.io/badge/Express-4.x-000000?style=flat&logo=express&logoColor=white" />
+  <img alt="License" src="https://img.shields.io/badge/License-MIT-yellow.svg" />
+</p>
+
+---
+
+## Introduction
+
+Startup and emerging technologies management system built with a decoupled microservices architecture. Each CRUD operation is implemented as an independent microservice, exposed through an Nginx API Gateway, with a responsive React frontend.
 
 ---
 
 ## Table of Contents
 
+- [Introduction](#introduction)
+- [Table of Contents](#table-of-contents)
 - [Description](#description)
 - [System Architecture](#system-architecture)
+  - [Microservices](#microservices)
 - [Project Structure](#project-structure)
 - [Technology Stack](#technology-stack)
+  - [Backend](#backend)
+  - [Frontend](#frontend)
 - [Prerequisites](#prerequisites)
+  - [Installation verification](#installation-verification)
 - [Installation and Execution](#installation-and-execution)
+  - [Step 1: Clone the repository](#step-1-clone-the-repository)
+  - [Step 2: Start services with Docker Compose](#step-2-start-services-with-docker-compose)
+  - [Step 3: Verify that services are running](#step-3-verify-that-services-are-running)
+  - [Step 4: Access the application](#step-4-access-the-application)
 - [Environment Variables](#environment-variables)
 - [API Routes](#api-routes)
+  - [Base URL](#base-url)
   - [Startups Endpoints](#startups-endpoints)
+    - [Example: Create startup](#example-create-startup)
   - [Technologies Endpoints](#technologies-endpoints)
+    - [Example: Create technology](#example-create-technology)
+  - [HTTP Status Codes](#http-status-codes)
 - [Postman Testing](#postman-testing)
+  - [Collection Overview](#collection-overview)
+  - [Postman Collection](#postman-collection)
+  - [Import](#import)
+  - [Documented Test Cases](#documented-test-cases)
+    - [Startups](#startups)
+    - [Technologies](#technologies)
+  - [Testing Examples](#testing-examples)
+    - [Successful Startup Creation](#successful-startup-creation)
+    - [Error Validation](#error-validation)
+    - [Resource Listing](#resource-listing)
 - [Data Model](#data-model)
+  - [Table: startups](#table-startups)
+  - [Table: technologies](#table-technologies)
 - [Useful Commands](#useful-commands)
+  - [Docker Compose](#docker-compose)
+  - [Database](#database)
 - [System Features](#system-features)
+  - [Backend](#backend-1)
+  - [Frontend](#frontend-1)
 - [Troubleshooting](#troubleshooting)
+  - [Services not responding](#services-not-responding)
+  - [Database connection error](#database-connection-error)
+  - [Frontend does not load data](#frontend-does-not-load-data)
+  - [Port already in use](#port-already-in-use)
+  - [Clean and rebuild](#clean-and-rebuild)
 - [Author](#author)
 - [License](#license)
 
