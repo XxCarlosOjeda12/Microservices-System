@@ -10,7 +10,6 @@ const useForm = (initialValues, validationFn) => {
       ...values,
       [name]: value
     });
-    // Limpiar error del campo cuando el usuario escribe
     if (errors[name]) {
       setErrors({
         ...errors,

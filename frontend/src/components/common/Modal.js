@@ -5,7 +5,7 @@ const Modal = ({
   onClose, 
   title, 
   children,
-  size = 'medium' // small, medium, large
+  size = 'medium' 
 }) => {
   if (!isOpen) return null;
 

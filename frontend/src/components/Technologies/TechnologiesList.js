@@ -1,4 +1,3 @@
-// src/components/Technologies/TechnologiesList.js - REFACTORIZADO
 import React, { useState, useEffect } from 'react';
 import { technologiesService } from '../../services/api';
 import useForm from '../../hooks/useForm';

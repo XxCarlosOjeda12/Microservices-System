@@ -1,480 +1,336 @@
-# Sistema de Microservicios CRUD - Reto Técnico Fullstack
+# CRUD Microservices System
 
-## Descripción
-
-Sistema de gestión de startups y tecnologías emergentes construido con arquitectura de microservicios desacoplados. Cada operación CRUD se implementa como un microservicio independiente, expuestos a través de un API Gateway Nginx, con frontend React responsivo.
-
-**Dominios:** Startups y Tecnologías Emergentes  
-**Microservicios:** 8 servicios independientes (4 por dominio)  
-**Gateway:** Nginx como reverse proxy  
-**Base de datos:** PostgreSQL compartida  
-**Frontend:** React con tema claro/oscuro
+![Node.js](https://img.shields.io/badge/Node.js-18-339933?style=flat&logo=node.js&logoColor=white)
+![React](https://img.shields.io/badge/React-19-61DAFB?style=flat&logo=react&logoColor=black)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-4169E1?style=flat&logo=postgresql&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-20.10+-2496ED?style=flat&logo=docker&logoColor=white)
+![Nginx](https://img.shields.io/badge/Nginx-Alpine-009639?style=flat&logo=nginx&logoColor=white)
+![Express](https://img.shields.io/badge/Express-4.x-000000?style=flat&logo=express&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-yellow.svg)
 
 ---
 
-## URLs de Despliegue en Producción
+## Table of Contents
 
-- Frontend: https://sistema-crud-microservicios.vercel.app/
-- API Gateway: https://api-gateway-c6ru.onrender.com
-- Repositorio: https://github.com/XxCarlosOjeda12/sistema-crud-microservicios
-- Base de datos: PostgreSQL en Render (activa)
+- [Description](#description)
+- [System Architecture](#system-architecture)
+- [Project Structure](#project-structure)
+- [Technology Stack](#technology-stack)
+- [Prerequisites](#prerequisites)
+- [Installation and Execution](#installation-and-execution)
+- [Environment Variables](#environment-variables)
+- [API Routes](#api-routes)
+  - [Startups Endpoints](#startups-endpoints)
+  - [Technologies Endpoints](#technologies-endpoints)
+- [Postman Testing](#postman-testing)
+- [Data Model](#data-model)
+- [Useful Commands](#useful-commands)
+- [System Features](#system-features)
+- [Troubleshooting](#troubleshooting)
+- [Author](#author)
+- [License](#license)
 
 ---
 
-## IMPORTANTE: Activación de Microservicios en Render
+## Description
 
-Los servicios desplegados en Render Free Tier entran en modo sleep después de 15 minutos de inactividad. Antes de usar la aplicación web o probar con Postman, es necesario activar manualmente los 8 microservicios ejecutando los siguientes comandos curl desde shell:
+Startup and emerging technologies management system built with a decoupled microservices architecture. Each CRUD operation is implemented as an independent microservice, exposed through an Nginx API Gateway, with a responsive React frontend.
 
-```shell
-# Startups Services
-curl https://create-startup-service-k9b4.onrender.com/health
-curl https://read-startup-service-lnq5.onrender.com/health
-curl https://update-startup-service-nx0g.onrender.com/health
-curl https://delete-startup-service-hjp3.onrender.com/health
+| Component | Description |
+|----------|-------------|
+| Domains | Startups and Emerging Technologies |
+| Microservices | 8 independent services (4 per domain) |
+| Gateway | Nginx as reverse proxy |
+| Database | PostgreSQL 15 |
+| Frontend | React with light/dark theme |
 
-# Technologies Services
-curl https://create-technology-service-ktk2.onrender.com/health
-curl https://read-technology-service-xy4o.onrender.com/health
-curl https://update-technology-service-nkvc.onrender.com/health
-curl https://delete-technology-service-2msh.onrender.com/health
+---
+
+## System Architecture
+
+```
+                              +------------------+
+                              |  Frontend React  |
+                              |  localhost:3000  |
+                              +--------+---------+
+                                       |
+                                       | HTTP
+                                       v
+                              +------------------+
+                              |   API Gateway    |
+                              |     (Nginx)      |
+                              |  localhost:8080  |
+                              +--------+---------+
+                                       |
+           +----------+----------+-----+-----+----------+----------+
+           |          |          |           |          |          |
+           v          v          v           v          v          v
+      +--------+ +--------+ +--------+  +--------+ +--------+ +--------+
+      | Create | | Read   | | Update |  | Delete | | Create | | Read   | ...
+      |Startup | |Startup | |Startup |  |Startup | | Tech   | | Tech   |
+      +--------+ +--------+ +--------+  +--------+ +--------+ +--------+
+           |          |          |           |          |          |
+           +----------+----------+-----------+----------+----------+
+                                       |
+                              +--------v---------+
+                              |   PostgreSQL     |
+                              |  localhost:5432  |
+                              +------------------+
 ```
 
-Después de ejecutar todos los curls, esperar 30-60 segundos para que los servicios estén completamente activos. Luego se puede acceder normalmente a la aplicación.
+### Microservices
 
-**Nota:** Si después de 15 minutos sin actividad se presentan errores 502 Bad Gateway o timeouts, repetir este procedimiento.
+**Startups:**
+- create-startup (port 3001)
+- read-startup (port 3002)
+- update-startup (port 3003)
+- delete-startup (port 3004)
 
----
-
-## Arquitectura del Sistema
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                         FRONTEND (React)                         │
-│              https://sistema-crud-microservicios                 │
-│                       .vercel.app                                │
-└───────────────────────────────┬─────────────────────────────────┘
-                                │
-                                │ HTTP Requests
-                                ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                    API GATEWAY (Nginx)                           │
-│          https://api-gateway-c6ru.onrender.com                   │
-│                    /v1/api/startups/*                            │
-│                    /v1/api/technologies/*                        │
-└──────┬──────────────┬─────────────┬──────────────┬──────────────┘
-       │              │             │              │
-       │              │             │              │
-   ┌───▼───┐      ┌───▼───┐    ┌───▼───┐      ┌───▼───┐
-   │Create │      │ Read  │    │Update │      │Delete │
-   │ k9b4  │      │ lnq5  │    │ nx0g  │      │ hjp3  │
-   └───┬───┘      └───┬───┘    └───┬───┘      └───┬───┘
-       │              │             │              │
-       └──────────────┴─────────────┴──────────────┘
-                      │
-              ┌───────▼────────┐
-              │   PostgreSQL   │
-              │     Render     │
-              │                │
-              │  - startups    │
-              │  - technologies│
-              └────────────────┘
-
-STARTUPS MICROSERVICES (Render):
-- CreateStartupService  (k9b4)
-- ReadStartupService    (lnq5)
-- UpdateStartupService  (nx0g)
-- DeleteStartupService  (hjp3)
-
-TECHNOLOGIES MICROSERVICES (Render):
-- CreateTechnologyService  (ktk2)
-- ReadTechnologyService    (xy4o)
-- UpdateTechnologyService  (nkvc)
-- DeleteTechnologyService  (2msh)
-```
+**Technologies:**
+- create-technology (port 3005)
+- read-technology (port 3006)
+- update-technology (port 3007)
+- delete-technology (port 3008)
 
 ---
 
-## Estructura del Proyecto
+## Project Structure
 
 ```
 reto1/
 ├── gateway/
-│   ├── nginx.conf              # Configuración para ejecución local
-│   ├── nginx.render.conf       # Configuración para despliegue en Render
-│   └── Dockerfile
+│   ├── nginx.conf              # Nginx configuration for local development
+│   ├── nginx.render.conf       # Nginx configuration for production
+│   └── Dockerfile              # API Gateway image
+│
 ├── services/
 │   ├── startups/
 │   │   ├── create/
-│   │   │   ├── index.js
+│   │   │   ├── index.js        # CREATE microservice
 │   │   │   ├── package.json
 │   │   │   └── Dockerfile
 │   │   ├── read/
+│   │   │   ├── index.js        # READ microservice
+│   │   │   ├── package.json
+│   │   │   └── Dockerfile
 │   │   ├── update/
+│   │   │   ├── index.js        # UPDATE microservice
+│   │   │   ├── package.json
+│   │   │   └── Dockerfile
 │   │   └── delete/
+│   │       ├── index.js        # DELETE microservice
+│   │       ├── package.json
+│   │       └── Dockerfile
+│   │
 │   └── technologies/
 │       ├── create/
+│       │   ├── index.js        # CREATE microservice
+│       │   ├── package.json
+│       │   └── Dockerfile
 │       ├── read/
+│       │   ├── index.js        # READ microservice
+│       │   ├── package.json
+│       │   └── Dockerfile
 │       ├── update/
+│       │   ├── index.js        # UPDATE microservice
+│       │   ├── package.json
+│       │   └── Dockerfile
 │       └── delete/
+│           ├── index.js        # DELETE microservice
+│           ├── package.json
+│           └── Dockerfile
+│
 ├── frontend/
+│   ├── public/
+│   │   ├── index.html          # Main HTML
+│   │   ├── manifest.json       # PWA manifest
+│   │   └── robots.txt          # SEO robots
+│   │
 │   ├── src/
 │   │   ├── components/
-│   │   │   ├── common/          (Modal, Alert, Spinner, etc.)
-│   │   │   ├── Startups/        (Lista, Tabla, Filtros, Form)
-│   │   │   └── Technologies/    (Lista, Grid, Filtros, Form)
-│   │   ├── hooks/               (useTheme, useForm, useApiCall)
-│   │   ├── utils/               (validators, formatters)
+│   │   │   ├── common/
+│   │   │   │   ├── Alert.js            # Alert component
+│   │   │   │   ├── ConfirmDialog.js    # Confirmation dialog
+│   │   │   │   ├── FormInput.js        # Reusable input
+│   │   │   │   ├── FormSelect.js       # Reusable select
+│   │   │   │   ├── Modal.js            # Generic modal
+│   │   │   │   └── Spinner.js          # Loading indicator
+│   │   │   │
+│   │   │   ├── Startups/
+│   │   │   │   ├── StartupForm.js      # Create/edit startup form
+│   │   │   │   ├── StartupsFilters.js  # Search filters
+│   │   │   │   ├── StartupsList.js     # Main container
+│   │   │   │   └── StartupsTable.js    # Startups table
+│   │   │   │
+│   │   │   └── Technologies/
+│   │   │       ├── TechnologiesFilters.js  # Search filters
+│   │   │       ├── TechnologiesGrid.js     # Technologies grid
+│   │   │       ├── TechnologiesList.js     # Main container
+│   │   │       └── TechnologyForm.js       # Create/edit form
+│   │   │
+│   │   ├── hooks/
+│   │   │   ├── useApiCall.js   # Hook for API calls
+│   │   │   ├── useForm.js      # Hook for form handling
+│   │   │   └── useTheme.js     # Hook for light/dark theme
+│   │   │
 │   │   ├── services/
-│   │   │   └── api.js
-│   │   ├── App.js
-│   │   ├── App.css
-│   │   └── index.js
-│   ├── package.json
-│   └── Dockerfile
+│   │   │   └── api.js          # Axios client and API services
+│   │   │
+│   │   ├── utils/
+│   │   │   ├── formatters.js   # Formatting functions
+│   │   │   └── validators.js   # Form validations
+│   │   │
+│   │   ├── App.js              # Main component
+│   │   ├── App.css             # Global styles and themes
+│   │   ├── index.js            # Entry point
+│   │   └── index.css           # Base styles
+│   │
+│   ├── .env                    # Environment variables (create from .env.example)
+│   ├── .env.example            # Environment variables template
+│   ├── .gitignore              # Git ignored files
+│   ├── package.json            # Frontend dependencies
+│   ├── package-lock.json       # Dependency lock
+│   ├── nginx.conf              # Nginx configuration for frontend
+│   ├── Dockerfile              # Frontend image
+│   └── README.md               # Frontend documentation
+│
 ├── db/
-│   └── init.sql
+│   └── init.sql                # DB initialization script
+│
 ├── capturas/
-│   ├── postman/                 (13 pruebas manuales documentadas)
-│   └── responsive/              (Screenshots en 3 resoluciones)
-├── docker-compose.yml
-├── Microservices_CRUD_Collection.postman.json
-├── .env.example
-└── README.md
+│   ├── postman/                # Postman test screenshots
+│   └── responsive/             # Responsive design screenshots
+│
+├── docker-compose.yml          # Container orchestration
+├── Microservices_CRUD_Collection.postman.json  # Postman collection
+└── README.md                   # This file
 ```
 
 ---
 
-## Stack Tecnológico
+## Technology Stack
 
 ### Backend
-- Runtime: Node.js 18
-- Framework: Express.js
-- Base de datos: PostgreSQL 15
-- Cliente DB: pg (node-postgres)
-- Gateway: Nginx
-- Contenedores: Docker + Docker Compose
-- Despliegue: Render Free Tier
+
+| Technology | Version | Usage |
+|-----------|---------|------|
+| Node.js | 18 | Runtime |
+| Express.js | 4.x | HTTP framework |
+| PostgreSQL | 15 | Database |
+| pg | 8.x | PostgreSQL client |
+| Nginx | Alpine | API Gateway |
+| Docker | 20.10+ | Containers |
+| Docker Compose | 2.x | Orchestration |
 
 ### Frontend
-- Framework: React 18
-- Router: React Router DOM v6
-- HTTP Client: Axios
-- Estilos: CSS con variables (tema claro/oscuro)
-- Arquitectura: Componentes funcionales + Hooks personalizados
-- Despliegue: Vercel
+
+| Technology | Version | Usage |
+|-----------|---------|------|
+| React | 19 | UI framework |
+| React Router DOM | 7.x | Routing |
+| Axios | 1.x | HTTP client |
+| CSS Variables | - | Light/dark themes |
 
 ---
 
-## Requisitos para Ejecución Local
+## Prerequisites
 
-### Software Necesario
+- Docker Desktop 20.10 or higher
+- Docker Compose (included with Docker Desktop)
+- Git
 
-**Sistema Operativo:**
-- Windows 10/11 con WSL2 (Windows Subsystem for Linux)
-- Docker Desktop for Windows
+### Installation verification
 
-**Componentes:**
-1. Docker Desktop (versión 20.10 o superior)
-   - Descargar desde: https://www.docker.com/products/docker-desktop
-   - Configurar integración con WSL2
-2. WSL2 con distribución Ubuntu
-   - Habilitar desde PowerShell (Administrador):
-     ```powershell
-     wsl --install
-     ```
-3. Docker Compose (incluido con Docker Desktop)
-
-**Verificación de instalación:**
 ```bash
-# Abrir terminal WSL (Ubuntu)
 docker --version
 docker-compose --version
 ```
 
-### Configuración Específica para Local
-
-**IMPORTANTE:** Para ejecutar el sistema localmente, realizar los siguientes cambios:
-
-#### 1. Modificar gateway/Dockerfile
-
-Cambiar el puerto expuesto de 10000 a 80:
-
-```dockerfile
-FROM nginx:alpine
-
-RUN rm /etc/nginx/conf.d/default.conf
-RUN rm /etc/nginx/nginx.conf
-
-COPY nginx.conf /etc/nginx/nginx.conf  # Usar nginx.conf (no nginx.render.conf)
-
-EXPOSE 80  # Cambiar de 10000 a 80 para ejecución local
-
-CMD ["nginx", "-g", "daemon off;"]
-```
-
-#### 2. Archivos de configuración Nginx
-
-- **nginx.conf:** Configuración para desarrollo local (puertos internos de Docker)
-- **nginx.render.conf:** Configuración para producción en Render (URLs completas HTTPS)
-
-Para local, asegurarse que el Dockerfile copie `nginx.conf` en lugar de `nginx.render.conf`.
-
 ---
 
-## Variables de Entorno
+## Installation and Execution
 
-### Archivo .env (raíz del proyecto)
-
-```env
-# Database
-DB_HOST=postgres
-DB_PORT=5432
-DB_NAME=reto_db
-DB_USER=postgres
-DB_PASSWORD=postgres123
-
-# Microservices Ports
-CREATE_STARTUP_PORT=3011
-READ_STARTUP_PORT=3012
-UPDATE_STARTUP_PORT=3013
-DELETE_STARTUP_PORT=3014
-CREATE_TECH_PORT=3021
-READ_TECH_PORT=3022
-UPDATE_TECH_PORT=3023
-DELETE_TECH_PORT=3024
-
-# Gateway
-GATEWAY_PORT=3000
-```
-
-### Archivo frontend/.env.example
-
-```env
-# Frontend Environment Variables
-# Copy this file to .env and configure
-
-# API Base URL (Local development)
-REACT_APP_API_BASE_URL=http://localhost:3000/v1/api
-
-# For production deployment (configure in Vercel dashboard)
-# REACT_APP_API_BASE_URL=https://api-gateway-c6ru.onrender.com/v1/api
-```
-
----
-
-## Instalación y Ejecución Local
-
-### Paso 1: Clonar el repositorio
+### Step 1: Clone the repository
 
 ```bash
-git clone https://github.com/XxCarlosOjeda12/sistema-crud-microservicios
-cd sistema-crud-microservicios
+git clone <repository-url>
+cd reto1
 ```
 
-### Paso 2: Configurar variables de entorno
+### Step 2: Start services with Docker Compose
 
 ```bash
-cp .env.example .env
-```
-
-Verificar que el archivo `.env` contenga las variables mostradas anteriormente.
-
-### Paso 3: Modificar configuración del Gateway (solo para local)
-
-Editar `gateway/Dockerfile` para usar puerto 80 y nginx.conf local según se especifica en la sección anterior.
-
-### Paso 4: Levantar servicios con Docker Compose
-
-```bash
-# Desde WSL, en la raíz del proyecto
 docker-compose up --build
 ```
 
-Este comando:
-- Construye las imágenes de los 8 microservicios
-- Construye la imagen del gateway
-- Construye la imagen del frontend
-- Crea la base de datos PostgreSQL
-- Ejecuta el script init.sql para crear las tablas
-- Levanta todos los contenedores en la red de Docker
+This command:
+- Builds the images for the 8 microservices
+- Builds the API Gateway image
+- Builds the frontend image
+- Creates the PostgreSQL database
+- Runs the init.sql script to create tables and insert test data
+- Brings up all containers on the Docker network
 
-Tiempo estimado: 3-5 minutos en el primer build.
+Estimated time: 3-5 minutes on the first build.
 
-### Paso 5: Verificar que todos los servicios estén corriendo
+### Step 3: Verify that services are running
 
 ```bash
 docker-compose ps
 ```
 
-Debe mostrar 11 contenedores activos:
-- 8 microservicios (startups y technologies)
-- 1 gateway
+It should show 11 active containers:
 - 1 frontend
+- 1 gateway
+- 8 microservices
 - 1 postgres
 
-### Paso 6: Acceder a la aplicación
+### Step 4: Access the application
 
-- Frontend: http://localhost:3001
-- API Gateway: http://localhost:3000
-- Base de datos: localhost:5432
-
+| Service | URL |
+|--------|-----|
+| Frontend | http://localhost:3000 |
+| API Gateway | http://localhost:8080 |
+| PostgreSQL | localhost:5432 |
 
 ---
 
-## Ejecución del Frontend en Modo Desarrollo (Alternativa)
+## Environment Variables
 
-Si deseas ejecutar **solo el frontend** en modo desarrollo (sin Docker), sigue estos pasos. Esto es útil para desarrollo del frontend cuando los servicios backend ya están corriendo con Docker o en producción.
-
-### Requisitos Previos
-
-- Node.js 18 o superior
-- npm 9 o superior
-
-Verificar instalación:
-```bash
-node --version
-npm --version
-```
-
-### Paso 1: Navegar al directorio del frontend
-
-```bash
-cd frontend
-```
-
-### Paso 2: Instalar dependencias
-
-```bash
-npm install
-```
-
-Este comando instalará todas las dependencias definidas en `package.json`:
-- React 18
-- React Router DOM
-- Axios
-- Otras dependencias necesarias
-
-Tiempo estimado: 1-2 minutos (primera vez).
-
-### Paso 3: Configurar variables de entorno
-
-Crear el archivo `.env` en la carpeta `frontend/`:
-
-```bash
-# Desde frontend/
-cp .env.example .env
-```
-
-Editar `frontend/.env` con el contenido apropiado:
+The docker-compose.yml file uses the following variables with default values:
 
 ```env
-# Para desarrollo local (si backend corre con Docker)
-REACT_APP_API_BASE_URL=http://localhost:3000/v1/api
-
-# Para desarrollo apuntando a producción
-# REACT_APP_API_BASE_URL=https://api-gateway-c6ru.onrender.com/v1/api
+DB_HOST=postgres
+DB_PORT=5432
+DB_NAME=reto_db
+DB_USER=postgres
+DB_PASSWORD=postgres123
 ```
 
-### Paso 4: Iniciar servidor de desarrollo
+---
 
-```bash
-npm start
-```
-
-Este comando:
-- Inicia el servidor de desarrollo de React
-- Abre automáticamente el navegador en `http://localhost:3000`
-- Habilita Hot Module Replacement (recarga automática al guardar cambios)
-- Muestra errores de compilación en la consola y en el navegador
-
-**Nota:** Si el puerto 3000 está ocupado por el API Gateway, React ofrecerá automáticamente usar el puerto 3001.
-
-### Paso 5: Verificar la aplicación
-
-Abre tu navegador en:
-- `http://localhost:3000` (o el puerto que React indique)
-
-Deberías ver la interfaz del sistema con:
-- Navegación entre Startups y Technologies
-- Botón de tema claro/oscuro
-- Funcionalidad CRUD completa
-
-### Comandos Adicionales de npm
-
-```bash
-# Ejecutar build de producción
-npm run build
-
-# Ejecutar tests (si están configurados)
-npm test
-
-# Verificar dependencias vulnerables
-npm audit
-
-# Actualizar dependencias
-npm update
-```
-
-### Estructura de Carpetas del Frontend
-
-```
-frontend/
-├── public/
-│   └── index.html
-├── src/
-│   ├── components/
-│   │   ├── common/          # Componentes reutilizables (Modal, Alert, etc.)
-│   │   ├── Startups/        # Componentes específicos de Startups
-│   │   └── Technologies/    # Componentes específicos de Technologies
-│   ├── hooks/               # Custom hooks (useTheme, useForm, etc.)
-│   ├── services/            # Servicios API (axios instances)
-│   ├── utils/               # Funciones utilitarias
-│   ├── App.js               # Componente principal
-│   ├── App.css              # Estilos globales
-│   └── index.js             # Entry point
-├── package.json
-├── .env                     # Variables de entorno (crear desde .env.example)
-├── .env.example             # Template de variables de entorno
-└── Dockerfile               # Para contenerización (Docker)
-```
-
-### Troubleshooting Frontend
-
-#### Error: "Port 3000 is already in use"
-**Solución:** React usará automáticamente el puerto 3001. Acepta con 'Y' cuando te pregunte.
-
-#### Error: "Cannot connect to API"
-**Solución:** 
-1. Verifica que el API Gateway esté corriendo (Docker o producción)
-2. Verifica la variable `REACT_APP_API_BASE_URL` en `.env`
-3. Verifica CORS en el backend
-
-#### Error: "Module not found"
-**Solución:**
-```bash
-# Eliminar node_modules y package-lock.json
-rm -rf node_modules package-lock.json
-
-# Reinstalar dependencias
-npm install
-```
-
-#### Cambios no se reflejan en el navegador
-**Solución:**
-1. Hacer hard refresh: `Ctrl + Shift + R` (Windows/Linux) o `Cmd + Shift + R` (Mac)
-2. Limpiar caché del navegador
-3. Reiniciar el servidor de desarrollo (`Ctrl + C` y luego `npm start`)
-
-## Rutas de API
+## API Routes
 
 ### Base URL
 
-**Producción:** `https://api-gateway-c6ru.onrender.com/v1/api`  
-**Local:** `http://localhost:3000/v1/api`
+```
+http://localhost:8080/v1/api
+```
 
-### Endpoints de Startups
+### Startups Endpoints
 
-#### CREATE - Crear startup
+| Method | Endpoint | Description |
+|-------|----------|-------------|
+| POST | /v1/api/startups/create | Create startup |
+| GET | /v1/api/startups/read | List startups |
+| GET | /v1/api/startups/read/:id | Get startup by ID |
+| GET | /v1/api/startups/read?name=X | Filter by name |
+| GET | /v1/api/startups/read?category=X | Filter by category |
+| PUT | /v1/api/startups/update/:id | Update startup |
+| DELETE | /v1/api/startups/delete/:id | Delete startup |
+
+#### Example: Create startup
+
 ```http
 POST /v1/api/startups/create
 Content-Type: application/json
@@ -486,8 +342,11 @@ Content-Type: application/json
   "category": "Artificial Intelligence",
   "funding_amount": 5000000
 }
+```
 
-Response 201:
+Response (201 Created):
+
+```json
 {
   "id": 1,
   "name": "TechVision AI",
@@ -500,57 +359,20 @@ Response 201:
 }
 ```
 
-#### READ - Listar startups
-```http
-GET /v1/api/startups/read
+### Technologies Endpoints
 
-Response 200: [array de startups]
-```
+| Method | Endpoint | Description |
+|-------|----------|-------------|
+| POST | /v1/api/technologies/create | Create technology |
+| GET | /v1/api/technologies/read | List technologies |
+| GET | /v1/api/technologies/read/:id | Get technology by ID |
+| GET | /v1/api/technologies/read?sector=X | Filter by sector |
+| GET | /v1/api/technologies/read?adoption_level=X | Filter by adoption level |
+| PUT | /v1/api/technologies/update/:id | Update technology |
+| DELETE | /v1/api/technologies/delete/:id | Delete technology |
 
-#### READ - Obtener por ID
-```http
-GET /v1/api/startups/read/1
+#### Example: Create technology
 
-Response 200: {objeto startup}
-```
-
-#### READ - Filtrar por nombre
-```http
-GET /v1/api/startups/read?name=Tech
-
-Response 200: [startups filtradas]
-```
-
-#### READ - Filtrar por categoría
-```http
-GET /v1/api/startups/read?category=Artificial Intelligence
-
-Response 200: [startups de la categoría]
-```
-
-#### UPDATE - Actualizar startup
-```http
-PUT /v1/api/startups/update/1
-Content-Type: application/json
-
-{
-  "funding_amount": 7500000,
-  "location": "Austin, TX"
-}
-
-Response 200: {startup actualizada}
-```
-
-#### DELETE - Eliminar startup
-```http
-DELETE /v1/api/startups/delete/1
-
-Response 204: No Content
-```
-
-### Endpoints de Technologies
-
-#### CREATE - Crear tecnología
 ```http
 POST /v1/api/technologies/create
 Content-Type: application/json
@@ -561,352 +383,259 @@ Content-Type: application/json
   "description": "Advanced computing using quantum mechanics",
   "adoption_level": "emerging"
 }
-
-Response 201: {tecnología creada}
 ```
 
-#### READ - Listar tecnologías
-```http
-GET /v1/api/technologies/read
+Valid values for `adoption_level`: emerging, growing, mature, declining
 
-Response 200: [array de tecnologías]
-```
+### HTTP Status Codes
 
-#### READ - Obtener por ID
-```http
-GET /v1/api/technologies/read/1
-
-Response 200: {objeto tecnología}
-```
-
-#### READ - Filtrar por sector
-```http
-GET /v1/api/technologies/read?sector=Computing
-
-Response 200: [tecnologías del sector]
-```
-
-#### READ - Filtrar por nivel de adopción
-```http
-GET /v1/api/technologies/read?adoption_level=emerging
-
-Response 200: [tecnologías emergentes]
-```
-
-#### UPDATE - Actualizar tecnología
-```http
-PUT /v1/api/technologies/update/1
-Content-Type: application/json
-
-{
-  "adoption_level": "growing",
-  "description": "Updated description"
-}
-
-Response 200: {tecnología actualizada}
-```
-
-#### DELETE - Eliminar tecnología
-```http
-DELETE /v1/api/technologies/delete/1
-
-Response 204: No Content
-```
-
-### Códigos de Estado HTTP
-
-- 200: OK (operación exitosa)
-- 201: Created (recurso creado)
-- 204: No Content (eliminación exitosa)
-- 400: Bad Request (datos inválidos)
-- 404: Not Found (recurso no encontrado)
-- 500: Internal Server Error (error del servidor)
+| Code | Description |
+|--------|-------------|
+| 200 | OK - Successful operation |
+| 201 | Created - Resource created |
+| 204 | No Content - Successful deletion |
+| 400 | Bad Request - Invalid data |
+| 404 | Not Found - Resource not found |
+| 500 | Internal Server Error |
 
 ---
 
-## Pruebas Manuales
+## Postman Testing
 
-### Colección Postman
+### Collection Overview
 
-El archivo `Microservices_CRUD_Collection.postman.json` incluye 18 requests pre-configurados.
+![Postman Collection](./capturas/postman/01-postman-collection-vista-general.png)
 
-**Importación:**
-1. Abrir Postman
-2. File → Import
-3. Seleccionar `Microservices_CRUD_Collection.postman.json`
+### Postman Collection
 
-**Configuración de variables:**
-- Para local: `baseUrl = http://localhost:3000/v1/api`
-- Para producción: `baseUrl = https://api-gateway-c6ru.onrender.com/v1/api`
+The `Microservices_CRUD_Collection.postman.json` file includes 18 pre-configured requests to test all endpoints.
 
-**Nota para producción:** Ejecutar los 8 comandos curl de activación antes de probar con Postman.
+### Import
 
-### Casos de Prueba Documentados
+1. Open Postman
+2. File > Import
+3. Select `Microservices_CRUD_Collection.postman.json`
+4. Set the `baseUrl` variable to `http://localhost:8080/v1/api`
 
-Se incluyen 13 capturas de pantalla en `/capturas/postman/` que demuestran:
+### Documented Test Cases
 
-#### Startups (9 pruebas)
+Screenshots in `/capturas/postman/` document the following tests:
 
-| Número | Endpoint | Método | Validación | Status | Archivo |
-|--------|----------|--------|------------|--------|---------|
-| 01 | Colección | - | 18 requests importados | OK | 01-postman-collection-overview.png |
-| 02 | /startups/create | POST | Creación exitosa | 201 | 02-startup-create-success.png |
-| 03 | /startups/create | POST | Validación de campos | 400 | 03-startup-create-fail.png |
-| 04 | /startups/read | GET | Lista completa | 200 | 04-startup-read-all.png |
-| 05 | /startups/read?category=... | GET | Filtros | 200 | 05-startup-read-filtered.png |
-| 06 | /startups/read/1 | GET | Por ID | 200 | 06-startup-read-by-id.png |
-| 07 | /startups/update/1 | PUT | Actualización | 200 | 07-startup-update-success.png |
-| 08 | /startups/delete/1 | DELETE | Eliminación | 200 | 08-startup-delete-success.png |
-| 09 | /startups/delete/99999 | DELETE | ID inexistente | 404 | 09-startup-delete-404.png |
+#### Startups
 
-#### Technologies (4 pruebas)
+| Test | Endpoint | Method | Expected Status | Screenshot |
+|--------|----------|--------|-----------------|---------|
+| 01 | Collection | - | Import OK | ![](./capturas/postman/01-postman-collection-vista-general.png) |
+| 02 | /startups/create | POST | 201 | ![](./capturas/postman/02-startup-create-success.png) |
+| 03 | /startups/create | POST | 400 (validation) | ![](./capturas/postman/03-startup-create-fail.png) |
+| 04 | /startups/read | GET | 200 | ![](./capturas/postman/04-startup-read-all.png) |
+| 05 | /startups/read?category=X | GET | 200 | ![](./capturas/postman/05-startup-read-filtered.png) |
+| 06 | /startups/read/:id | GET | 200 | ![](./capturas/postman/06-startup-read-by-id.png) |
+| 07 | /startups/update/:id | PUT | 200 | ![](./capturas/postman/07-startup-update-success.png) |
+| 08 | /startups/delete/:id | DELETE | 200 | ![](./capturas/postman/08-startup-delete-200.png) |
+| 09 | /startups/delete/99999 | DELETE | 404 | ![](./capturas/postman/09-startup-delete-404.png) |
 
-| Número | Endpoint | Método | Validación | Status | Archivo |
-|--------|----------|--------|------------|--------|---------|
-| 10 | /technologies/create | POST | Creación exitosa | 201 | 10-technology-create-success.png |
-| 11 | /technologies/read | GET | Lista completa | 200 | 11-technology-read-all.png |
-| 12 | /technologies/update/2 | PUT | Actualización | 200 | 12-technology-update-success.png |
-| 13 | /technologies/delete/3 | DELETE | Eliminación | 200 | 13-technology-delete-success.png |
+#### Technologies
 
-Cada captura muestra:
-- Método HTTP y URL completa
-- Request body (cuando aplica)
-- Status code de respuesta
-- JSON de respuesta completo
-- Tiempo de respuesta
+| Test | Endpoint | Method | Expected Status | Screenshot |
+|--------|----------|--------|-----------------|---------|
+| 10 | /technologies/create | POST | 201 | ![](./capturas/postman/10-technology-create-success.png) |
+| 11 | /technologies/read | GET | 200 | ![](./capturas/postman/11-technology-read-filtered.png) |
+| 12 | /technologies/update/:id | PUT | 200 | ![](./capturas/postman/12-technology-update-success.png) |
+| 13 | /technologies/delete/:id | DELETE | 200 | ![](./capturas/postman/13-technology-delete-200.png) |
 
----
+### Testing Examples
 
-## Responsividad del Frontend
+#### Successful Startup Creation
 
-El sistema fue desarrollado con enfoque mobile-first y probado en 3 resoluciones.
+![Startup Create Success](./capturas/postman/02-startup-create-success.png)
 
-### Screenshots en /capturas/responsive/
+#### Error Validation
 
-#### Smartphone (375px)
-- Formularios de una columna
-- Menú hamburguesa
-- Cards verticales
-- Botones full-width
-- Scroll horizontal en tablas
+![Startup Create Fail](./capturas/postman/03-startup-create-fail.png)
 
-#### Tablet (768px)
-- Grid de 2 columnas
-- Menú dropdown
-- Mayor espaciado
-- Formularios de 2 columnas
+#### Resource Listing
 
-#### Desktop (1280px+)
-- Grid de 3 columnas
-- Navbar fija
-- Layout completo
-- Todas las funcionalidades visibles
-
-Las capturas incluyen vistas de:
-- Listado de startups
-- Listado de tecnologías
-- Formularios de creación/edición
-- Tema claro y oscuro en cada resolución
-
-**Tecnologías utilizadas:**
-- CSS Media Queries
-- Flexbox y CSS Grid
-- Variables CSS para temas
+![Startup Read All](./capturas/postman/04-startup-read-all.png)
 
 ---
 
-## Características Principales
+## Data Model
+
+### Table: startups
+
+| Field | Type | Constraints |
+|-------|------|-------------|
+| id | SERIAL | PRIMARY KEY |
+| name | VARCHAR(255) | NOT NULL |
+| founded_at | DATE | NOT NULL |
+| location | VARCHAR(255) | NOT NULL |
+| category | VARCHAR(100) | NOT NULL |
+| funding_amount | DECIMAL(15,2) | DEFAULT 0 |
+| created_at | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP |
+| updated_at | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP |
+
+### Table: technologies
+
+| Field | Type | Constraints |
+|-------|------|-------------|
+| id | SERIAL | PRIMARY KEY |
+| name | VARCHAR(255) | NOT NULL |
+| sector | VARCHAR(100) | NOT NULL |
+| description | TEXT | - |
+| adoption_level | VARCHAR(50) | NOT NULL, CHECK (emerging, growing, mature, declining) |
+| created_at | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP |
+| updated_at | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP |
+
+---
+
+## Useful Commands
+
+### Docker Compose
+
+```bash
+# Start services in the background
+docker-compose up -d
+
+# Start with rebuild
+docker-compose up --build
+
+# Stop services
+docker-compose down
+
+# View logs for all services
+docker-compose logs -f
+
+# View logs for a specific service
+docker-compose logs -f gateway
+
+# View container status
+docker-compose ps
+
+# Restart a service
+docker-compose restart gateway
+
+# Remove volumes (includes DB data)
+docker-compose down -v
+```
+
+### Database
+
+```bash
+# Connect to PostgreSQL
+docker exec -it reto_db psql -U postgres -d reto_db
+
+# List tables
+\dt
+
+# View startups data
+SELECT * FROM startups;
+
+# View technologies data
+SELECT * FROM technologies;
+
+# Exit
+\q
+```
+
+---
+
+## System Features
 
 ### Backend
 
-- 8 microservicios independientes con responsabilidad única
-- API Gateway Nginx con versionado de rutas (/v1/api)
-- PostgreSQL con tablas normalizadas
-- Validación de entrada en todos los endpoints
-- Manejo consistente de errores con códigos HTTP apropiados
-- Endpoints /health para monitoreo
-- CORS configurado para el frontend
-- Docker Compose para orquestación local
+- 8 independent microservices with single responsibility
+- Nginx API Gateway with route versioning (/v1/api)
+- PostgreSQL with normalized tables and indexes
+- Input validation on all endpoints
+- Consistent error handling with appropriate HTTP codes
+- /health endpoints for monitoring
+- CORS configured
+- Docker Compose for orchestration
 
 ### Frontend
 
-- CRUD completo para ambos dominios
-- Filtros dinámicos (nombre, categoría, sector, nivel de adopción)
-- Validación en cliente antes de envío
-- Mensajes de error descriptivos
-- Indicadores de carga durante peticiones
-- Tema claro/oscuro con persistencia
-- Responsive design en 3 resoluciones
-- Componentes reutilizables y hooks personalizados
-- Routing con React Router
-
----
-
-## Limitaciones Conocidas
-
-### Render Free Tier
-
-1. **Cold Start:** Servicios requieren activación manual después de 15 minutos de inactividad
-2. **Timeouts:** Primera petición sin activación previa probablemente fallará con 502
-3. **Latencia:** Cold start tarda 40-60 segundos por servicio
-4. **Disponibilidad:** No apto para producción con alta disponibilidad
-
-### Funcionalidades No Implementadas
-
-1. **Autenticación:** No hay sistema de usuarios ni control de acceso
-2. **Paginación:** Listados muestran todos los registros
-3. **Tests Automatizados:** Solo pruebas manuales documentadas
-4. **Caché:** No hay caché en frontend ni backend
-5. **Rate Limiting:** No hay límite de peticiones por IP
-6. **Logging Avanzado:** Solo logs básicos en consola
-7. **Migraciones Automáticas:** Schema definido en init.sql estático
+- Full CRUD for both domains
+- Dynamic filters (name, category, sector, adoption level)
+- Client-side validation before submitting
+- Descriptive error messages
+- Loading indicators during requests
+- Light/dark theme with persistence in localStorage
+- Responsive design
+- Reusable components
+- Custom hooks (useTheme, useForm, useApiCall)
+- Routing with React Router
 
 ---
 
 ## Troubleshooting
 
-### Error 502 Bad Gateway en producción
-
-**Causa:** Microservicios dormidos en Render.
-
-**Solución:** Ejecutar los 8 comandos curl de activación y esperar 60 segundos.
-
-### Servicios no responden localmente
+### Services not responding
 
 ```bash
-# Verificar que todos los contenedores estén corriendo
+# Check container status
 docker-compose ps
 
-# Ver logs de un servicio específico
-docker-compose logs create-startup
+# Check logs to identify errors
+docker-compose logs
 
-# Ver logs en tiempo real
-docker-compose logs -f
+# Restart all services
+docker-compose down
+docker-compose up --build
 ```
 
-### Error de conexión a base de datos
+### Database connection error
 
 ```bash
-# Verificar que PostgreSQL esté corriendo
+# Verify PostgreSQL is running
 docker-compose ps postgres
 
-# Ver logs de PostgreSQL
+# View PostgreSQL logs
 docker-compose logs postgres
 
-# Recrear contenedor de base de datos
-docker-compose down
-docker-compose up -d postgres
+# Wait for healthcheck to pass
+docker-compose up -d
+# Wait 15 seconds and verify
+docker-compose ps
 ```
 
-### Frontend no se conecta al backend
+### Frontend does not load data
 
-Verificar variable de entorno en `frontend/.env`:
-```env
-REACT_APP_API_BASE_URL=http://localhost:3000/v1/api
-```
+1. Verify the API Gateway is running: http://localhost:8080/health
+2. Check gateway logs: `docker-compose logs gateway`
+3. Verify microservices respond: `docker-compose logs read-startup`
 
-Rebuild del frontend:
+### Port already in use
+
 ```bash
+# See which process is using the port (Windows PowerShell)
+netstat -ano | findstr :3000
+
+# Stop containers and free ports
 docker-compose down
-docker-compose up --build frontend
+```
+
+### Clean and rebuild
+
+```bash
+# Remove containers, networks, and volumes
+docker-compose down -v
+
+# Remove project images
+docker rmi $(docker images "reto1*" -q)
+
+# Rebuild from scratch
+docker-compose up --build
 ```
 
 ---
 
-## Despliegue en Producción
+## Author
 
-### Arquitectura de Despliegue
-
-- Frontend: Vercel (despliegue automático desde GitHub)
-- API Gateway: Render Web Service
-- Microservicios: 8 Render Web Services independientes
-- Base de datos: Render PostgreSQL
-
-### Configuración Específica de Render
-
-#### Gateway Dockerfile para producción:
-
-```dockerfile
-FROM nginx:alpine
-
-RUN rm /etc/nginx/conf.d/default.conf
-RUN rm /etc/nginx/nginx.conf
-
-COPY nginx.render.conf /etc/nginx/nginx.conf
-
-EXPOSE 10000
-
-CMD ["nginx", "-g", "daemon off;"]
-```
-
-#### nginx.render.conf características:
-
-- URLs HTTPS completas de microservicios
-- proxy_ssl_server_name on para SNI correcto
-- Timeouts de 90 segundos
-- Sin upstreams (proxy_pass directo)
-
-### Variables de Entorno en Render
-
-Cada microservicio necesita:
-```
-DB_HOST=<internal-database-url>
-DB_PORT=5432
-DB_NAME=reto_db
-DB_USER=postgres
-DB_PASSWORD=<database-password>
-PORT=<assigned-by-render>
-```
+Carlos Elias Linares Ojeda
 
 ---
 
-## Checklist de Funcionalidades
+## License
 
-### Requisitos del Reto
-
-- [x] 8 microservicios CRUD independientes
-- [x] API Gateway genérico (Nginx)
-- [x] Comunicación HTTP directa
-- [x] Frontend funcional y responsivo (3 resoluciones)
-- [x] Base de datos PostgreSQL compartida
-- [x] Docker + Docker Compose
-- [x] Despliegue funcional en la nube
-- [x] Documentación completa
-- [x] Pruebas manuales documentadas con capturas
-
-### Extras Implementados
-
-- [x] Endpoints /health en todos los microservicios
-- [x] Versionado de API (/v1/api)
-- [x] Tema claro/oscuro en frontend
-- [x] Validaciones en cliente y servidor
-- [x] Manejo robusto de errores
-- [x] Arquitectura modular con hooks personalizados
-- [x] CORS configurado correctamente
-
----
-
-## Autor
-
-**Nombre:** Carlos Elias Linares Ojeda  
-**Fecha de entrega:** 6 de octubre de 2025  
-**Repositorio:** https://github.com/XxCarlosOjeda12/sistema-crud-microservicios  
-**Versión:** 1.0.0
-
----
-
-## Notas Finales
-
-Este proyecto cumple con todos los requisitos especificados en el reto técnico:
-
-- Arquitectura de microservicios desacoplados por acción CRUD
-- API Gateway genérico con Nginx
-- Frontend responsivo en 3 resoluciones
-- Sistema completamente contenerizado
-- Despliegue funcional en producción
-- Documentación completa con ejemplos
-- Pruebas manuales documentadas con evidencia fotográfica
-
-Tiempo estimado de setup:
-- Sistema desplegado: 2-3 minutos (con activación de microservicios)
-- Sistema local: 10-15 minutos
+This project was developed as part of a technical challenge.

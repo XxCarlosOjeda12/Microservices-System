@@ -1,8 +1,3 @@
-// ============================================
-// CREATE TECHNOLOGY
-// File: services/technologies/create/index.js
-// ============================================
-
 const express = require('express');
 const { Pool } = require('pg');
 const cors = require('cors');
@@ -82,32 +77,4 @@ app.listen(PORT, () => {
   console.log(`Create Technology Service running on port ${PORT}`);
 });
 
-// ============================================
-// READ TECHNOLOGY SERVICE
-// File: services/technologies/read/index.js
-// ============================================
-// PORT 3006
-// Similar structure, but with:
-
-// GET /v1/api/technologies/read
-// Query params: sector, adoptionLevel, name
-// Returns list with pagination
-
-// GET /v1/api/technologies/read/:id
-// Returns single technology by ID
-
-// ============================================
-// UPDATE TECHNOLOGY SERVICE 
-// File: services/technologies/update/index.js
-// ============================================
-// PORT 3007
-// PUT /v1/api/technologies/update/:id
-// Updates only provided fields
-
-// ============================================
-// DELETE TECHNOLOGY SERVICE
-// File: services/technologies/delete/index.js
-// ============================================
-// PORT 3008
-// DELETE /v1/api/technologies/delete/:id
-// Deletes technology by ID
+ 

@@ -1,4 +1,3 @@
-// src/components/Technologies/TechnologyForm.js
 import React from 'react';
 import FormInput from '../common/FormInput';
 import FormSelect from '../common/FormSelect';

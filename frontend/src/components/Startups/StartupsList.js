@@ -46,7 +46,6 @@ const StartupsList = () => {
       const response = await execute(() => startupsService.getAll(filters));
       setStartups(response.data || []);
     } catch (err) {
-      // El error ya está manejado por useApiCall
     }
   };
 
@@ -74,7 +73,6 @@ const StartupsList = () => {
       setEditingStartup(null);
       loadStartups();
     } catch (err) {
-      // El error ya está manejado por useApiCall
     }
   };
 
@@ -99,7 +97,6 @@ const StartupsList = () => {
       setDeleteConfirm(null);
       loadStartups();
     } catch (err) {
-      // El error ya está manejado por useApiCall
     }
   };
 

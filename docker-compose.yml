@@ -1,7 +1,6 @@
 version: '3.8'
 
 services:
-  # Base de datos PostgreSQL
   postgres:
     image: postgres:15-alpine
     container_name: reto_db
@@ -22,14 +21,25 @@ services:
       timeout: 5s
       retries: 5
 
-  # API Gateway
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: reto_frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - gateway
+    networks:
+      - reto_network
+
   gateway:
     build:
       context: ./gateway
       dockerfile: Dockerfile
     container_name: reto_gateway
     ports:
-      - "3000:80"
+      - "8080:80"
     depends_on:
       - create-startup
       - read-startup
@@ -42,7 +52,6 @@ services:
     networks:
       - reto_network
 
-  # Servicios de Startups  
   create-startup:
     build:
       context: ./services/startups/create
@@ -115,7 +124,6 @@ services:
     networks:
       - reto_network
 
-  # Servicios de Technologies
   create-technology:
     build:
       context: ./services/technologies/create

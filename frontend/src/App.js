@@ -3,15 +3,9 @@ import { BrowserRouter as Router, Routes, Route, Link, NavLink } from 'react-rou
 import './App.css';
 import StartupsList from './components/Startups/StartupsList';
 import TechnologiesList from './components/Technologies/TechnologiesList';
-import useTheme from './hooks/useTheme';
 
 function App() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { theme, toggleTheme } = useTheme();
-
-  const toggleMobileMenu = () => {
-    setMobileMenuOpen(!mobileMenuOpen);
-  };
 
   const closeMobileMenu = () => {
     setMobileMenuOpen(false);
@@ -26,22 +20,6 @@ function App() {
               <Link to="/" className="logo">
                 Sistema de gestión
               </Link>
-              
-              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                <button 
-                  className="theme-toggle"
-                  onClick={toggleTheme}
-                  aria-label="Cambiar tema"
-                  title={theme === 'light' ? 'Activar modo oscuro' : 'Activar modo claro'}
-                >
-                  {theme === 'light' ? '🌙' : '☀️'}
-                </button>
-                
-                <button className="mobile-menu-btn" onClick={toggleMobileMenu}>
-                  {mobileMenuOpen ? '✕' : '☰'}
-                </button>
-              </div>
-              
               <nav className={`nav ${mobileMenuOpen ? 'active' : ''}`}>
                 <NavLink 
                   to="/" 
@@ -88,7 +66,6 @@ function App() {
   );
 }
 
-// Componente Home
 function Home() {
   return (
     <div>

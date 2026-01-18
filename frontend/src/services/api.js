@@ -24,7 +24,6 @@ api.interceptors.response.use(
   }
 );
 
-// Servicios para Startups
 export const startupsService = {
   getAll: async (filters = {}) => {
     const params = new URLSearchParams();
@@ -56,7 +55,6 @@ export const startupsService = {
   }
 };
 
-// Servicios para Technologies
 export const technologiesService = {
   getAll: async (filters = {}) => {
     const params = new URLSearchParams();

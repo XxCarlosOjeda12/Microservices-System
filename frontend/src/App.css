@@ -1,4 +1,3 @@
-/* Variables de diseño - Tema Claro */
 :root {
   --primary-color: #2563eb;
   --primary-hover: #1d4ed8;
@@ -16,25 +15,6 @@
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
   --border-radius: 8px;
 }
-
-/* Variables de diseño - Tema Oscuro */
-[data-theme='dark'] {
-  --primary-color: #3b82f6;
-  --primary-hover: #2563eb;
-  --secondary-color: #60a5fa;
-  --background: #0f172a;
-  --card-bg: #1e293b;
-  --text-primary: #f1f5f9;
-  --text-secondary: #94a3b8;
-  --border-color: #334155;
-  --success: #10b981;
-  --error: #ef4444;
-  --warning: #f59e0b;
-  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
-}
-
 
 * {
   margin: 0;
@@ -174,7 +154,6 @@ body {
   transition: background-color 0.3s ease;
 }
 
-/* Cards */
 .card {
   background: var(--card-bg);
   border-radius: var(--border-radius);
@@ -208,7 +187,6 @@ body {
   padding: 0.5rem 0;
 }
 
-/* Forms */
 .form {
   display: flex;
   flex-direction: column;
@@ -259,7 +237,6 @@ body {
   margin-top: 0.25rem;
 }
 
-/* Botones */
 .btn {
   padding: 0.75rem 1.5rem;
   border: none;
@@ -326,7 +303,6 @@ body {
   flex-wrap: wrap;
 }
 
-/* Tablas */
 .table-container {
   overflow-x: auto;
   background: var(--card-bg);
@@ -387,7 +363,6 @@ body {
   }
 }
 
-/* Modal */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -464,7 +439,6 @@ body {
   }
 }
 
-/* Mensajes de alerta */
 .alert {
   padding: 1rem;
   border-radius: var(--border-radius);
@@ -519,7 +493,6 @@ body {
   }
 }
 
-/* Grid */
 .grid {
   display: grid;
   gap: 1.5rem;
@@ -533,7 +506,6 @@ body {
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
 }
 
-/* Utilities */
 .text-center {
   text-align: center;
 }
@@ -548,9 +520,7 @@ body {
 .mt-3 { margin-top: 1.5rem; }
 .mt-4 { margin-top: 2rem; }
 
-/* Diseño responsivo */
 
-/* Tablet (768px) */
 @media (max-width: 768px) {
   .container {
     max-width: 100%;
@@ -599,7 +569,6 @@ body {
   }
 }
 
-/* Smartphone (375px) */
 @media (max-width: 375px) {
   .header-content {
     padding: 0.75rem;
@@ -661,7 +630,6 @@ body {
   }
 }
 
-/* Desktop (1280px+) */
 @media (min-width: 1280px) {
   .container {
     max-width: 1280px;

@@ -1,8 +1,3 @@
-// ============================================
-// UPDATE STARTUP
-// File: services/startups/update/index.js
-// ============================================
-
 const express = require('express');
 const { Pool } = require('pg');
 const cors = require('cors');

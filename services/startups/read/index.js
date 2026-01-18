@@ -1,8 +1,3 @@
-// ============================================
-// READ STARTUP
-// File: services/startups/read/index.js
-// ============================================
-
 const express = require('express');
 const { Pool } = require('pg');
 const cors = require('cors');
